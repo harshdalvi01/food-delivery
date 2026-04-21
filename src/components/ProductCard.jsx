@@ -235,8 +235,8 @@ const ProductCard = ({ product, onAddToCart, cartItem, onWishlist, isWishlisted 
             )}
           </div>
 
-          {/* Mobile Add Button */}
-          <div className="lg:hidden">
+          {/* Add Button / Quantity Stepper */}
+          <div>
             <AnimatePresence mode="wait">
               {quantity === 0 ? (
                 <motion.button
