@@ -24,6 +24,7 @@ function Storefront({ userName }) {
   const [activeTab, setActiveTab] = useState('home');
   const [wishlist, setWishlist] = useState([]);
   const [page, setPage] = useState('store');
+  const [lastAddedProduct, setLastAddedProduct] = useState(null);
 
   // Simulate initial loading
   useEffect(() => {
@@ -33,6 +34,10 @@ function Storefront({ userName }) {
 
   // Handle adding/updating cart items
   const handleAddToCart = useCallback((product, quantity) => {
+    if (quantity > 0) {
+      setLastAddedProduct(product);
+    }
+
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
 
@@ -123,7 +128,17 @@ function Storefront({ userName }) {
   // Get recommendations (shuffle products for variety)
   const recommendedProducts = [...products].sort(() => Math.random() - 0.5).slice(0, 6);
   const trendingProducts = [...products].sort((a, b) => b.reviews - a.reviews).slice(0, 6);
-  const frequentlyBoughtProducts = products.slice(0, 3);
+
+  const frequentlyBoughtProducts = lastAddedProduct
+    ? products
+      .filter(
+        (product) =>
+          product.id !== lastAddedProduct.id &&
+          product.category === lastAddedProduct.category
+      )
+      .sort((a, b) => b.reviews - a.reviews)
+      .slice(0, 3)
+    : [];
 
   // Cart item count
   const cartItemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -180,13 +195,6 @@ function Storefront({ userName }) {
         selectedCategory={selectedCategory}
       />
 
-      {/* Frequently Bought Together */}
-      <FrequentlyBoughtTogether
-        products={frequentlyBoughtProducts}
-        onAddToCart={handleAddToCart}
-        cartItems={cartItems}
-      />
-
       {/* Products Grid */}
       <ProductGrid
         products={filteredProducts}
@@ -197,6 +205,15 @@ function Storefront({ userName }) {
         onWishlist={handleWishlistToggle}
         wishlist={wishlist}
       />
+
+      {/* Frequently Bought Together (Shown after first add to cart) */}
+      {lastAddedProduct && frequentlyBoughtProducts.length > 0 && (
+        <FrequentlyBoughtTogether
+          products={frequentlyBoughtProducts}
+          onAddToCart={handleAddToCart}
+          cartItems={cartItems}
+        />
+      )}
 
       {/* Show empty state for no results */}
       {filteredProducts.length === 0 && searchQuery && (
